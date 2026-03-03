@@ -25,7 +25,7 @@ gay <- read_csv("./data/raw/gay.csv")
 #Number of observations
 nrow(gay)
 
-#Number of unique values "study" takes.
+#Number of unique values "study" takes..
 table(gay$study)
 
 #Listing treatment conditions in the "treatment" variable
