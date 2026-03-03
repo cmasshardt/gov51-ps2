@@ -29,7 +29,7 @@ nrow(gay)
 table(gay$study)
 
 #Listing treatment conditions in the "treatment" variable
-table(gay$treatment)
+table(gay$treatment)  
 ```
 
 There are 69,592 observations (rows) in gay.csv.
