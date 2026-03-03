@@ -19,7 +19,7 @@ library(tidyverse)
 gay <- read_csv("./data/raw/gay.csv")
 ```
 
-***Q1.1 (3 points):** How many total observations are in gay.csv? How many unique values does study take? List all the treatment conditions in the treatment variable.*
+***Q1.1 (3 points):** How many total observations are in gay.csv? How many unique values does dstudy take? List all the treatment conditions in the treatment variable.*
 
 ```{r}
 #Number of observations
