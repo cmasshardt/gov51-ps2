@@ -41,7 +41,7 @@ The "treatment" variable takes on one of five conditions: "No contact," "Recycli
 ***Q1.2 (3 points):** Filter to Study 1, Wave 1 only. Calculate the mean of ssm (same-sex marriage attitude, scored 1–5) for each treatment group using group_by() and summarize(). Which treatment group shows the highest average support?*
 
 ```{r}
-s1w1 <- gay[,]
+s1w1 <- 
 ```
 
 Here
