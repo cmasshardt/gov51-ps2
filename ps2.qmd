@@ -14,16 +14,29 @@ GitHub URL: <https://github.com/cmasshardt/gov51-ps2.git>
 *1.1.1 Load packages and data*
 
 ```{r}
-
+#| include: false
+library(tidyverse)
+gay <- read_csv("./data/raw/gay.csv")
 ```
 
 ***Q1.1 (3 points):** How many total observations are in gay.csv? How many unique values does study take? List all the treatment conditions in the treatment variable.*
 
 ```{r}
+#Number of observations
+nrow(gay)
 
+#Number of unique values "study" takes.
+table(gay$study)
+
+#Listing treatment conditions in the "treatment" variable
+table(gay$treatment)
 ```
 
-Here
+There are 69,592 observations (rows) in gay.csv.
+
+The variable "study" takes two different unique values: 1 and 2.
+
+The "treatment" variable takes on one of five conditions: "No contact," "Recycling script by gay canvasser," "Recycling script by straight canvasser," "Same-sex marriage script by gay canvasser," or "Same-sex marriage script by straight canvasser."
 
 ***Q1.2 (3 points):** Filter to Study 1, Wave 1 only. Calculate the mean of ssm (same-sex marriage attitude, scored 1–5) for each treatment group using group_by() and summarize(). Which treatment group shows the highest average support?*
 
@@ -165,6 +178,8 @@ Here
 ```{r}
 
 ```
+
+Here
 
 ***Q3.2 (3 points):** Create side-by-side histograms of Study 1 baseline (therm1) and Study 2 baseline (therm1), using the same bins as before. How do they compare visually? (2–3 sentences)*
 
