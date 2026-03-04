@@ -19,13 +19,13 @@ library(tidyverse)
 gay <- read_csv("./data/raw/gay.csv")
 ```
 
-***Q1.1 (3 points):** How many total observations are in gay.csv? How many unique values does dstudy take? List all the treatment conditions in the treatment variable.*
+***Q1.1 (3 points):** How many total observations are in gay.csv? How many unique values does study take? List all the treatment conditions in the treatment variable.*
 
 ```{r}
 #Number of observations
 nrow(gay)
 
-#Number of unique values "study" takes...
+#Number of unique values "study" takes
 table(gay$study)
 
 #Listing treatment conditions in the "treatment" variable
@@ -41,23 +41,45 @@ The "treatment" variable takes on one of five conditions: "No contact," "Recycli
 ***Q1.2 (3 points):** Filter to Study 1, Wave 1 only. Calculate the mean of ssm (same-sex marriage attitude, scored 1–5) for each treatment group using group_by() and summarize(). Which treatment group shows the highest average support?*
 
 ```{r}
-s1w1 <-  
+#Subsetting to study 1, wave 1
+study1 <- gay[gay$study==1,]
+s1w1 <- study1[study1$wave==1,]
+
+#Finding mean of ssm by treatment group
+mean_ssm_by_treatment <- s1w1 %>%
+  group_by(treatment) %>%
+  summarize(mean_ssm = mean(ssm))
+mean_ssm_by_treatment
+
 ```
 
-Here
+The treatment group "recycling script by gay canvasser" shows the highest average support, with a mean same-sex marriage attitude of 3.13.
 
 ***Q1.3 (3 points):** Still using Study 1, Wave 1, calculate the standard deviation of ssm within each treatment group. Are the standard deviations roughly similar across groups? Why is this important in a randomized experiment? (2–3 sentences)*
 
 ```{r}
-
+#Finding standard deviations of ssm treatment group
+sd_ssm_by_treatment <- s1w1 %>%
+  group_by(treatment) %>%
+  summarize(sd_ssm = sd(ssm))
+sd_ssm_by_treatment
 ```
 
-Here
+Yes, the standard deviations are roughly similar across groups, encompassing the limited range between 1.66 and 1.70. In a randomized experiment, it is important that the standard deviations are roughly similar across groups because this confirms that the groups are randomized well and do not contain systematic differences from one another. Since we are measuring the effect of a treatment on the response variable (ssm), the baseline response variable values need to be similar so that we can meaningfully compare the changes in each group that result from the treatment.
 
 ***Q1.4 (3 points):** Create a bar plot of the mean ssm by treatment group (Study 1, Wave 1) using ggplot() with geom_col(). Hint: First create a summary data frame with the means, then plot it.*
 
 ```{r}
+#Reading in scales library to enable label wrap
+library(scales)
 
+#Making bar plot for mean SSM by treatment group 
+ggplot(mean_ssm_by_treatment, aes(x=treatment, y=mean_ssm)) +
+  geom_col(width=0.8, fill="steelblue") +
+  labs(title = "Mean SSM by Treatment Group") +
+  labs(x = "Treatment Group", y = "Mean SSM") +
+  scale_x_discrete(labels = label_wrap(10)) +
+  theme_minimal()
 ```
 
 **1.2 Checking Balance and Comparing Outcomes**
@@ -71,20 +93,64 @@ Here
 *A standardized difference below 0.25 in absolute value suggests good balance. Do these groups look similar at baseline? (2–3 sentences)*
 
 ```{r}
+#Mean ssm for "Same-Sex Marriage Script by Gay Canvasser"
+ss_gay <- s1w1[s1w1$treatment=="Same-Sex Marriage Script by Gay Canvasser",]
+mean(ss_gay$ssm)
+
+#Standard deviation of ssm for "Same-Sex Marriage Script by Gay Canvasser"
+sd(ss_gay$ssm)
+
+#Mean ssm for "No Contact"
+no_contact <- s1w1[s1w1$treatment=="No Contact",]
+mean(no_contact$ssm)
+
+#Standard deviation of ssm for "No Contact"
+sd(no_contact$ssm)
 
 ```
 
-Answer Here
+-   Mean ssm for "Same-Sex Marriage Script by Gay Canvasser": **3.03**
+
+-   Standard deviation of ssm for "Same-Sex Marriage Script by Gay Canvasser": **1.67**
+
+-   Mean ssm for "No Contact": **3.04**
+
+-   Standard deviation of ssm for "No Contact": **1.68**
+
+Standard mean difference = $\frac{\bar{x}_{gay canvasser} - \bar{x}_{no contact}}{\sqrt{(s^2_{gay canvasser} + s^2_{no contact})/2}}$
+
+$\frac{3.025195 - 3.042764}{\sqrt{(1.666099)^2 + (1.68054)^2)/2}}$
+
+$\frac{-0.017569}{1.673335078}$
+
+Standardized difference in means: **-0.0105**
+
+Since the SDM of -0.0105 has an absolute value less than 0.25, we can conclude that these groups look similar at baseline. Both the treatment group (same-sex marriage script by gay canvasser) and control group (no contact) have a similar baseline mean (3.03 and 3.04) and standard deviation (1.67 and 1.68). The standardized difference in means confirms with a single statistic that these baseline groups from wave 1 are very similar.
 
 ***Q1.6 (4 points):** Now look at the outcomes. Filter to Study 1, Wave 2 only. Calculate the mean ssm for the gay canvasser group and the No Contact group. What is the difference in means (gay canvasser minus no contact)?*
 
 *Interpret: since the groups were balanced at baseline, what does a difference at Wave 2 suggest? (2–3 sentences)*
 
 ```{r}
+#Subsetting to study 1, wave 1
+s1w2 <- study1[study1$wave==2,]
 
+#Mean ssm for "Same-Sex Marriage Script by Gay Canvasser"
+wave2_ss_gay <- s1w2[s1w2$treatment=="Same-Sex Marriage Script by Gay Canvasser",]
+mean(wave2_ss_gay$ssm)
+
+#Mean ssm for "No Contact"
+wave2_no_contact <- s1w2[s1w2$treatment=="No Contact",]
+mean(wave2_no_contact$ssm)
 ```
 
-Here
+Mean ssm for gay canvasser group: **3.139**
+
+Mean ssm for no contact group: **3.04**
+
+Difference in means: 3.139 - 3.04 = **0.1**
+
+Given that these two groups were balanced at baseline, a difference at wave 2 suggests that the treatment of a gay canvasser reading a script about same-sex marriage led to an increase in the thermometer score (ssm) indicating a positive perception of same-sex marriage. Compared to the control group of "no contact" which saw no change in mean ssm, the treatment group saw nearly a 0.11-unit increase in ssm. Since the design is stated to be experimental, we would conclude from this that the treatment of a gay canvasser reading a script about same-sex marriage caused a positive increase in participants' sentiment toward same-sex marriage.
 
 ## Part 2: The Forensic Discovery
 
@@ -95,9 +161,26 @@ Here
 ***Q2.1 (3 points):** Load gayreshaped.csv and ccap2012.csv. Report the number of observations and column names for each dataset. In gayreshaped.csv, the variables therm1 through therm4 represent feeling thermometer scores (0–100) toward gay men and lesbians, measured at each survey wave.*
 
 ```{r}
+#Loading datasets
+#| warning: false
 gay_r <- read_csv("./data/raw/gayreshaped.csv")
 ccap <- read_csv("./data/raw/ccap2012.csv")
+
+#
+
 ```
+
+**gay_r**
+
+-   Number of observations: \_\_
+
+-   Column names: \_\_
+
+**ccap**
+
+-   Number of observations: \_\_
+
+-   Column names: \_\_
 
 **Q2.2 (5 points):** Extract the baseline feeling thermometer (therm1) for Study 1 from gayreshaped.csv. Calculate its mean, median, and standard deviation. Then do the same for gaytherm from ccap2012.csv (remove NAs). Report both sets of statistics side by side. What do you notice? (1–2 sentences)
 
