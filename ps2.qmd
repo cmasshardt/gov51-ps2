@@ -109,13 +109,13 @@ sd(no_contact$ssm)
 
 ```
 
--   Mean ssm for "Same-Sex Marriage Script by Gay Canvasser": **3.03**
+-   Mean ssm for "Same-Sex Marriage Script by Gay Canvasser": **3.025**
 
--   Standard deviation of ssm for "Same-Sex Marriage Script by Gay Canvasser": **1.67**
+-   Standard deviation of ssm for "Same-Sex Marriage Script by Gay Canvasser": **1.666**
 
--   Mean ssm for "No Contact": **3.04**
+-   Mean ssm for "No Contact": **3.043**
 
--   Standard deviation of ssm for "No Contact": **1.68**
+-   Standard deviation of ssm for "No Contact": **1.681**
 
 Standard mean difference = $\frac{\bar{x}_{gay canvasser} - \bar{x}_{no contact}}{\sqrt{(s^2_{gay canvasser} + s^2_{no contact})/2}}$
 
@@ -162,47 +162,105 @@ Given that these two groups were balanced at baseline, a difference at wave 2 su
 
 ```{r}
 #Loading datasets
-#| warning: false
-gay_r <- read_csv("./data/raw/gayreshaped.csv")
-ccap <- read_csv("./data/raw/ccap2012.csv")
+gay_r <- read_csv("./data/raw/gayreshaped.csv", show_col_types = FALSE)
+ccap <- read_csv("./data/raw/ccap2012.csv", show_col_types = FALSE)
 
-#
+#Number of observations in gay_r
+nrow(gay_r)
+
+#Finding column names of gay_r
+head(gay_r)
+
+#Number of observations in ccap
+nrow(ccap)
+
+#Finding column names of ccap
+head(ccap)
 
 ```
 
 **gay_r**
 
--   Number of observations: \_\_
+-   Number of observations: **11,948**
 
--   Column names: \_\_
+-   Column names (6): **study, treatment, therm1, therm2, therm 3, therm4**
 
 **ccap**
 
--   Number of observations: \_\_
+-   Number of observations: **43,998**
 
--   Column names: \_\_
+-   Column names (3): **...1 (list in numerical order), caseid, and gaytherm**
 
-**Q2.2 (5 points):** Extract the baseline feeling thermometer (therm1) for Study 1 from gayreshaped.csv. Calculate its mean, median, and standard deviation. Then do the same for gaytherm from ccap2012.csv (remove NAs). Report both sets of statistics side by side. What do you notice? (1–2 sentences)
+    (Only two of these columns are meaningful)
+
+***Q2.2 (5 points):** Extract the baseline feeling thermometer (therm1) for Study 1 from gayreshaped.csv. Calculate its mean, median, and standard deviation. Then do the same for gaytherm from ccap2012.csv (remove NAs). Report both sets of statistics side by side. What do you notice? (1–2 sentences)*
 
 ```{r}
+#Extracting therm1 from gayreshaped
+gay_r_s1 <- gay_r[gay_r$study==1,]
+baseline_s1 <- gay_r_s1$therm1
+
+#Caluclating mean, median, and sd for gayreshaped therm1
+mean(baseline_s1)
+median(baseline_s1)
+sd(baseline_s1)
+
+#Caluclating mean, median, and sd for ccap gaytherm
+mean(ccap$gaytherm, na.rm = TRUE)
+median(ccap$gaytherm, na.rm = TRUE)
+sd(ccap$gaytherm, na.rm = TRUE)
 
 ```
 
-*What do you notice?*
+**therm1 from gayreshaped:**
 
-Here
+-   Mean: 58.4
+
+-   Median: 52
+
+-   Standard deviation: 28.5
+
+**gaytherm from ccap:**
+
+-   Mean: 58.7
+
+-   Median: 54
+
+-   Standard deviation: 29.4
+
+The summary statistics for therm1 from the gayreshaped data and gaytherm from the ccap 2012 data are quite shockingly similar: The means are only different by 0.3, the medians by 2, and the standard deviations by 0.9. It is incredibly unlikely that these two very different sets of data, if truly collected independently and from very different populations, would yield such similar results about participants' baseline feelings toward same-sex marriage.
 
 ***Q2.3 (5 points):** Create side-by-side histograms comparing the LaCour Study 1 baseline (therm1) and the CCAP data (gaytherm). Use the same bin breaks for both: breaks = seq(0, 100, by = 5).*
 
 *Hint: Combine the two datasets into one data frame with a column indicating the source, then use ggplot() with facet_wrap().*
 
 ```{r}
+#subsetting gay_r to study 1
+gay_r_s1 <- gay_r[gay_r$study==1,]
+
+#Creating one dataframe with the two 
+gay_r_s1$source <- 'LaCour'
+ccap$source <- 'CCAP'
+comparison <- bind_rows(gay_r_s1, ccap)
+
+#Creating side-by-side histogram
+ggplot(comparison, aes(x = therm1)) +
+  geom_histogram(binwidth = 5, breaks = seq(0, 100, by = 5)) +
+  facet_wrap(~source) +
+  labs(x = "Thermometer Score", y = "Count",
+       title = "Side-by-Side Thermometer Scores")
+
+ggplot(comparison, aes(x = gaytherm)) +
+  geom_histogram(binwidth = 5, breaks = seq(0, 100, by = 5)) +
+  facet_wrap(~source) +
+  labs(x = "Thermometer Score", y = "Count",
+       title = "Side-by-Side Thermometer Scores")
 
 ```
 
 *Do these look like they came from different populations? (2–3 sentences)*
 
-Here
+No, these look like they came from the same population. While heaping at 0, 50, and 100 is to be expected based on what we know about thermometer metrics, the distributions of thermometer scores for the CCAP and LaCour Study 1 look incredibly similar, with each individual bin relatively matching the height of the corresponding bin for the other data set's histogram. Since these samples purportedly came from 2 very different populations (one in Los Angeles and the other national), we would expect significant differences in baseline thermometer scores.
 
 **2.2 Re-test Reliability**
 
@@ -217,10 +275,43 @@ Here
 *Present your results side by side. A re-test correlation of 0.95–0.97 is typical for real feeling thermometer data. Which study shows a more plausible pattern, and why? (3–4 sentences)*
 
 ```{r}
+#Recall that LaCour study 1 is reflected by gay_r_s1
+#Creating subset for Study 1 control group
+s1_control <- gay_r_s1[gay_r_s1$treatment=="No Contact",]
+
+#Creating subset for study 2 control group
+gay_r_s2 <- gay_r[gay_r$study==2,]
+s2_control <- gay_r_s2[gay_r_s2$treatment=="No Contact",]
+
+#Correlation between therm1 and therm2 for Study 1
+cor(s1_control$therm1, s1_control$therm2, use = "complete.obs")
+
+#Correlation between therm1 and therm2 for Study 2
+cor(s2_control$therm1, s2_control$therm2, use = "complete.obs")
+
+#Standard deviation of within-person change for study 1
+sd(s1_control$therm2 - s1_control$therm1, na.rm = TRUE)
+
+#Standard deviation of within-person change for study 1
+sd(s2_control$therm2 - s2_control$therm1, na.rm = TRUE)
 
 ```
 
-Answer here
+**(a)**
+
+Correlation between therm1 and therm2 for study 1 control group: **0.998**
+
+Correlation between therm1 and therm2 for study 2 control group: **0.973**
+
+**(b)**
+
+SD of within-person change for Study 1 control group: **1.99**
+
+SD of within-person change for study 2 control group: **6.61**
+
+**Discussion:**
+
+Study 2 shows a much more plausible pattern, as the re-test correlation of 0.973 for the control group for study 2 is closer to the typical range of 0.95-0.97 for re-test correlation. Meanwhile, the re-test correlation of 0.998 for study 1 is strangely close to 1, which is highly unlikely since people not expected to be so consistent in how their opinion changes from the baseline to the second thermometer when they are not receiving the treatment. Moreover, the higher within-person standard deviation of 6.61 for study 2 reflects more variation in how control group participants' scores differed, variation which is to be expected in a random sample of the population.
 
 ***Q2.5 (5 points):** Create two scatter plots side by side:*
 
@@ -231,10 +322,28 @@ Answer here
 *Describe the differences. Which looks more like real longitudinal data, and why? (3–4 sentences)*
 
 ```{r}
+#Study 1 Control Group
+ggplot(s1_control,
+       aes(therm1, therm2)) +
+  geom_point(color = "steelblue", size = 2) +
+  geom_abline(intercept = 0, slope = 1,
+               color = "red") +
+  labs(x = "therm1", y = "therm2",
+       title = "Study 1 Control Group Correlation") +
+  theme_minimal()
 
+#Study 2 Control Group
+ggplot(s2_control,
+       aes(therm1, therm2)) +
+  geom_point(color = "steelblue", size = 2) +
+  geom_abline(intercept = 0, slope = 1,
+               color = "red") +
+  labs(x = "therm1", y = "therm2",
+       title = "Study 2 Control Group Correlation") +
+  theme_minimal()
 ```
 
-Here
+The correlation between therm1 and therm2 for Study 1 almost exactly follows a line with slope of 1, with the exception of some perfectly vertical lines at 50 and 100. The heaping at 50, for example, disappears with therm2 and seems to just scatter normally around the points for the therm2 data. The correlations for study 2 look more like real longitudinal data, still showing heaping at round numbers, with imperfectly correlated points indicating the type of "noise" we would expect from thermometer data.
 
 **2.3 Putting It All Together**
 
@@ -248,7 +357,7 @@ Here
 
 *In 4–5 sentences, explain why these three findings together suggest the data were fabricated rather than collected in a real experiment. Use specific numbers from your analysis. Why would a fabricator produce data with these properties?*
 
-Here
+Even the first point is quite damning evidence of fabrication: The possibility that the baseline thermometer thermometer scores encapsulating feelings toward same-sex marriage for a sample of participants from Los Angeles would appear almost exactly the same as the scores for a national sample is highly improbable, and likely points to fabrication of the data from the CCAP sample. When it comes to changes in individual scores themselves for the LaCour data (study 1), the re-test correlation of 0.998 (incredibly close to 1) for the control group is highly unlikely given the noise that we would expect from thermometer scores when data for each wave is collected at different times. This unnatural closeness to a re-test correlation of 1 suggests fabrication rather than real collected data. At the level of within-person change for participants' scores, it is likewise shocking to see a standard deviation of only 1.99, which is unrealistically small considering the noisiness of thermometer data. While any one of these pieces of evidence alone would be questionable grounds to undermine the study, all three together are a perfect storm pointing in the direction of fabrication.
 
 ## Part 3: What Real Data Looks Like
 
