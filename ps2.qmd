@@ -591,11 +591,11 @@ fit_s2 <- lm(therm2 ~ therm1, data = s2_control)
 summary(fit_s2)
 ```
 
--   Slope ($\hat{\beta_1}$): **0.969**
+-   Slope ($\hat{\beta_1}$): **0.968662**
 
--   $R^2$: **0.948**
+-   $R^2$: **0.9476**
 
--   Residual standard error: **6.55** (df = 1037)
+-   Residual standard error: **6.547** (df = 1037)
 
 With study 2, we see the latter pattern, which indicates real data. The slope of 0.969 and $R^2$ of 0.948 are substantially lower than 1 for these metrics, meaning that the data is not just copy-pasted with noise added, but reflects what we would expect in data collected from the real world. With study 1, we see the first pattern indicating fabricated data — a slope of 0.992 and $R^2$ of 0.995 that are basically equivalent to 1 for all intents and purposes, with some fabricated noise added.
 
@@ -618,11 +618,24 @@ filtered_s2 <- filtered_s2 %>%
   mutate(treated = if_else(treatment %in% "Same-Sex Marriage Script by Gay Canvasser", 1, 0))
 
 #Fitting the linear model
-lm(therm2 ~ treated, data = filtered_s2)
+fit_filtered_s2 <- lm(therm2 ~ treated, data = filtered_s2)
+summary(fit_filtered_s2)
 
 ```
 
-Here
+-   $\hat{\beta_1}$: **3.5679**
+
+-   Standard error: **1.2423**
+
+-   t-statistic: **2.872**
+
+-   p-value: **0.00412**
+
+The $\hat{\beta_1}$ value of 3.5679 is the same as the difference in post-period means of 3.57 calculated in Q3.4. Since the "treated" variable equals 1 for the "Same-Sex Marriage Script by Gay Canvasser" category, $\hat{\beta_1}$ estimates the increase in therm2 score predicted by receiving the treatment, compared to the control group.
+
+$\hat{\beta_0}$ estimates the therm2 score for someone in the control group ("No Contact"), since a value of 0 for "treated" (which causes the predicted therm2 value to equal $\hat{\beta_0}$) means that the participant is in the control group.
+
+The difference between the groups **is** statistically significant at 𝛼 = 0.05 because the p-value of 0.00412 is less than 0.05.At a significance level of 0.05, we can reject the null hypothesis of $\hat{\beta_1}$ = 0.
 
 **4.3 Controlling for Baseline Attitudes**
 
@@ -639,10 +652,23 @@ Here
 *(c) Why does controlling for baseline attitudes improve precision? (2–3 sentences)*
 
 ```{r}
-
+fit2_filtered_s2 <- lm(therm2 ~ treated + therm1, data = filtered_s2)
+summary(fit2_filtered_s2)
 ```
 
-Here
+-   Coefficient on treated: **2.458857**
+
+-   Standard error: **0.342052**
+
+-   t-statistic: **7.21**
+
+-   p-value: **7.76e-13**
+
+\(a\) Yes, the estimate of $\hat{\beta_1}$ decreased quite a bit from **3.5679** to **2.458857.**
+
+\(b\) Yes, the standard error decreased (less variation) from **1.2423** to **0.342052.**
+
+\(c\) Controlling for baseline attitudes improves precision because it removes some of the demand from "treated" to explain variation in therm2. Before adding therm1 (baseline attitudes) as a covariate, treated was responsible for explaining some of the "noise" that was actually created by therm1. By adding therm1 as a covariate, the "treated" variable no longer needed to explain as much of the variation in therm2.
 
 ***Q4.5 (5 points):** Compare the R-squared values from Q4.3 and Q4.4. Why does adding therm1 increase the R-squared so dramatically? What does this tell you about how much of the variation in follow-up attitudes is explained by where people started versus the treatment?*
 
@@ -655,7 +681,23 @@ Here
 *What is the predicted difference in their Wave 2 attitudes?*
 
 ```{r}
+#Person A
+person_A <- data.frame(treated = 1, therm1 = 50)
+predict(fit2_filtered_s2, newdata = person_A)
 
+#Person B
+person_B <- data.frame(treated = 0, therm1 = 50)
+predict(fit2_filtered_s2, newdata = person_B)
+
+#Predicted difference
+predict(fit2_filtered_s2, newdata = person_A) -
+  predict(fit2_filtered_s2, newdata = person_B)
 ```
 
-Here
+In Q4.3, the R-squared value was [0.003857]{.underline}. In Q4.4, the R-squared value was [0.925]{.underline}. This dramatic increase in R-squared after adding therm1 as a covariate shows that therm1 predicts much more of the variation in therm2 than treated does. Whereas treated explained only 0.4% of the variation in wave 2 attitudes, therm1 (wave 1 attitudes) predicted 92.5 - 0.4 = 92.1% of the variation in wave 2 attitudes. Most of the variation in therm2 is therefore actually predicted by where people started in attitude (therm1).
+
+-   Predicted therm2 for Person A: **52.47638**
+
+-   Predicted therm2 for Person B: **50.01752**
+
+-   Predicted difference (A-B) in wave 2 attitudes: **2.458857**
